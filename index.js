@@ -1,7 +1,6 @@
 import express from "express";
 import { paymentMiddleware } from "x402-express";
 import dotenv from "dotenv";
-import cors from "cors";
 import axios from "axios";
 
 dotenv.config();
