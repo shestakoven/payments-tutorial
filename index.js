@@ -61,10 +61,18 @@ app.use(
       "GET /weather": {
         price: "$0.01",
         network: network,
+        config: {
+          description: "Weather data access",
+          mimeType: "application/json"
+        }
       },
       "GET /transfers": {
-        price: "$0.02",
+        price: "$0.02", 
         network: network,
+        config: {
+          description: "USDC transfers data access",
+          mimeType: "application/json"
+        }
       },
     },
     facilitator
