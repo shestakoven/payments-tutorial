@@ -11,8 +11,10 @@ const port = process.env.PORT || 4021;
 
 // Enable CORS for all origins and allow necessary headers for x402
 app.use(cors({
-  exposedHeaders: ['www-authenticate'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Payment']
+  origin: '*', // Allow any origin to access the server
+  methods: ['GET', 'OPTIONS'], // Specify allowed HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Payment'], // Allow custom headers
+  exposedHeaders: ['www-authenticate'], // Expose the payment header to the client
 }));
 
 // The wallet address that will receive the payments.
