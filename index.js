@@ -9,23 +9,37 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 4021;
 
-// Manually set headers for CORS to ensure they apply to all responses,
-// including the 402 responses from the payment middleware. This replaces
-// the `app.use(cors())` call.
+/* ------------------------------------------------------------------ */
+/* 1. LATE CORS INJECTION – runs before every request                 */
+/* ------------------------------------------------------------------ */
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Payment');
-  res.setHeader('Access-Control-Expose-Headers', 'www-authenticate');
-  
-  // The browser sends an OPTIONS request first to check if the server will allow
-  // the actual request. We end the request here with a 204 No Content status.
-  if (req.method === 'OPTIONS') {
+  // Helper – adds / overwrites the CORS headers we need
+  const setCORS = () => {
+    res.setHeader("Access-Control-Allow-Origin",  "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers",
+                  "Content-Type, Authorization, X-Payment");
+    res.setHeader("Access-Control-Expose-Headers", "WWW-Authenticate");
+  };
+
+  // Patch writeHead so headers are guaranteed to be present
+  const originalWriteHead = res.writeHead;
+  res.writeHead = function (...args) {
+    setCORS();                   // inject just before the headers go out
+    return originalWriteHead.apply(this, args);
+  };
+
+  // Handle the CORS pre-flight quickly
+  if (req.method === "OPTIONS") {
+    setCORS();
     return res.sendStatus(204);
   }
 
   next();
 });
+/* ------------------------------------------------------------------ */
+
+/* -------------------- x402 middleware & routes -------------------- */
 
 // The wallet address that will receive the payments.
 // This should be in your .env file.
