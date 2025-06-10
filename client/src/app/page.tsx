@@ -7,7 +7,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { Hex } from 'viem';
 
 // The base URL of your backend server
-const BACKEND_URL = 'http://localhost:4021';
+const BACKEND_URL = 'https://payments-tutorial-production.up.railway.app';
 
 export default function Home() {
   const [freeResponse, setFreeResponse] = useState<string>('');

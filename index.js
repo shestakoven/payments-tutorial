@@ -9,8 +9,11 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 4021;
 
-// Enable CORS for all origins
-app.use(cors());
+// Enable CORS for all origins and allow necessary headers for x402
+app.use(cors({
+  exposedHeaders: ['www-authenticate'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Payment']
+}));
 
 // The wallet address that will receive the payments.
 // This should be in your .env file.
