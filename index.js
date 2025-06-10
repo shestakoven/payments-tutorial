@@ -60,7 +60,7 @@ app.get("/free-data", (req, res) => {
 
 app.get("/transfers", async (req, res) => {
   try {
-    const response = await axios.post("http://localhost:4350/graphql", {
+    const response = await axios.post("https://02d04771-2524-439e-8d55-d25d9ca868b7.squids.live/squid-indexer@v1/api/graphql", {
       query: `
         query TransfersQuery {
             usdcTransfers(orderBy: block_DESC, limit: 10) {

@@ -15,5 +15,7 @@ deploy:
   api:
     cmd:
       - sqd
+      - serve:prod
+
 scale: 
   dedicated: false
