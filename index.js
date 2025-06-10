@@ -15,10 +15,10 @@ app.use((req, res, next) => {
   // Helper – adds / overwrites the CORS headers we need
   const setCORS = () => {
     res.setHeader("Access-Control-Allow-Origin",  "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
+    res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS,POST");
     res.setHeader("Access-Control-Allow-Headers",
                   "Content-Type, Authorization, X-Payment");
-    res.setHeader("Access-Control-Expose-Headers", "WWW-Authenticate");
+    res.setHeader("Access-Control-Expose-Headers", "WWW-Authenticate, X-Payment-Request, X-Payment-Response");
   };
 
   // Patch writeHead so headers are guaranteed to be present
@@ -136,5 +136,5 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
   console.log(`Recipient wallet address: ${walletAddress}`);
-  console.log('Protected route: GET /weather');
+  console.log('Protected routes: GET /weather, GET /transfers');
 }); 
