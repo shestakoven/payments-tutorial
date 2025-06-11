@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import axios from 'axios';
-import { withPaymentInterceptor } from 'x402-axios';
 import { privateKeyToAccount } from 'viem/accounts';
 import { Hex } from 'viem';
+import { createPaymentHeader, selectPaymentRequirements } from 'x402/client';
 
 // The base URL of your backend server
 const BACKEND_URL = 'https://payments-tutorial-production.up.railway.app';
@@ -60,24 +60,65 @@ export default function Home() {
     }
 
     try {
-      // Create a wallet account from the private key
-      const account = privateKeyToAccount(privateKey as Hex);
-      
-      // Create an axios instance with the x402 payment interceptor
-      const client = withPaymentInterceptor(axios.create({ baseURL: BACKEND_URL }), account);
-
-      // Make the request to the paid endpoint
-      const res = await client.get('/weather');
+      // Create a plain axios instance without the interceptor
+      const plainClient = axios.create({ baseURL: BACKEND_URL });
+      const res = await plainClient.get('/weather');
       setPaidResponse(JSON.stringify(res.data, null, 2));
     } catch (err) {
-      console.error(err);
-      let errorMessage = 'An unknown error occurred.';
-      if (axios.isAxiosError(err)) {
-        errorMessage = err.response?.data?.error || err.message;
-      } else if (err instanceof Error) {
-        errorMessage = err.message;
+      if (axios.isAxiosError(err) && err.response?.status === 402) {
+        console.log("[x402] Payment required, handling manually...");
+        try {
+            const account = privateKeyToAccount(privateKey as Hex);
+            const paymentInfo = err.response.data;
+
+            // Manually select the payment requirements from the 402 response
+            const selectedReq = selectPaymentRequirements(
+                paymentInfo.accepts,
+                'base-sepolia',
+                'exact'
+            );
+
+            if (!selectedReq) {
+                throw new Error("No suitable payment requirement found.");
+            }
+
+            // Create the payment header
+            const paymentHeader = await createPaymentHeader(
+                account,
+                paymentInfo.x402Version,
+                selectedReq,
+            );
+
+            // Retry the request with the payment header
+            const plainClient = axios.create({ baseURL: BACKEND_URL });
+            const paidRes = await plainClient.get('/weather', {
+                headers: {
+                    'X-PAYMENT': paymentHeader
+                }
+            });
+
+            setPaidResponse(JSON.stringify(paidRes.data, null, 2));
+
+        } catch (paymentError) {
+            console.error("Payment handling failed:", paymentError);
+            let errorMessage = 'An unknown error occurred during payment.';
+            if (axios.isAxiosError(paymentError)) {
+                errorMessage = paymentError.response?.data?.error || paymentError.message;
+            } else if (paymentError instanceof Error) {
+                errorMessage = paymentError.message;
+            }
+            setError(`Error fetching paid data: ${errorMessage}`);
+        }
+      } else {
+        console.error(err);
+        let errorMessage = 'An unknown error occurred.';
+        if (axios.isAxiosError(err)) {
+          errorMessage = err.response?.data?.error || err.message;
+        } else if (err instanceof Error) {
+          errorMessage = err.message;
+        }
+        setError(`Error fetching paid data: ${errorMessage}`);
       }
-      setError(`Error fetching paid data: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -109,24 +150,65 @@ export default function Home() {
     }
 
     try {
-      // Create a wallet account from the private key
-      const account = privateKeyToAccount(privateKey as Hex);
-      
-      // Create an axios instance with the x402 payment interceptor
-      const client = withPaymentInterceptor(axios.create({ baseURL: BACKEND_URL }), account);
-
-      // Make the request to the paid endpoint
-      const res = await client.get('/transfers');
+      // Create a plain axios instance without the interceptor
+      const plainClient = axios.create({ baseURL: BACKEND_URL });
+      const res = await plainClient.get('/transfers');
       setTransfersResponse(JSON.stringify(res.data, null, 2));
     } catch (err) {
-      console.error(err);
-      let errorMessage = 'An unknown error occurred.';
-      if (axios.isAxiosError(err)) {
-        errorMessage = err.response?.data?.error || err.message;
-      } else if (err instanceof Error) {
-        errorMessage = err.message;
+      if (axios.isAxiosError(err) && err.response?.status === 402) {
+        console.log("[x402] Payment required, handling manually...");
+        try {
+            const account = privateKeyToAccount(privateKey as Hex);
+            const paymentInfo = err.response.data;
+
+            // Manually select the payment requirements from the 402 response
+            const selectedReq = selectPaymentRequirements(
+                paymentInfo.accepts,
+                'base-sepolia',
+                'exact'
+            );
+
+            if (!selectedReq) {
+                throw new Error("No suitable payment requirement found.");
+            }
+
+            // Create the payment header
+            const paymentHeader = await createPaymentHeader(
+                account,
+                paymentInfo.x402Version,
+                selectedReq,
+            );
+
+            // Retry the request with the payment header
+            const plainClient = axios.create({ baseURL: BACKEND_URL });
+            const paidRes = await plainClient.get('/transfers', {
+                headers: {
+                    'X-PAYMENT': paymentHeader
+                }
+            });
+
+            setTransfersResponse(JSON.stringify(paidRes.data, null, 2));
+
+        } catch (paymentError) {
+            console.error("Payment handling failed:", paymentError);
+            let errorMessage = 'An unknown error occurred during payment.';
+            if (axios.isAxiosError(paymentError)) {
+                errorMessage = paymentError.response?.data?.error || paymentError.message;
+            } else if (paymentError instanceof Error) {
+                errorMessage = paymentError.message;
+            }
+            setError(`Error fetching transfers data: ${errorMessage}`);
+        }
+      } else {
+        console.error(err);
+        let errorMessage = 'An unknown error occurred.';
+        if (axios.isAxiosError(err)) {
+          errorMessage = err.response?.data?.error || err.message;
+        } else if (err instanceof Error) {
+          errorMessage = err.message;
+        }
+        setError(`Error fetching transfers data: ${errorMessage}`);
       }
-      setError(`Error fetching transfers: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
